@@ -8,8 +8,8 @@ import progressbar
 import threadpool
 import operator
 from threading import Thread
-# from data_center.models import Course, Department
-# from data_center.const import week_dict, course_dict
+from data_center.models import Course, Department
+from data_center.const import week_dict, course_dict
 
 BASE_URL = 'http://class-qry.acad.ncku.edu.tw/qry/'
 DEPT_URL = 'http://class-qry.acad.ncku.edu.tw/qry/qry001.php?dept_no='
@@ -169,7 +169,6 @@ def collect_course_info(tr):
 
 
 def archive_courses(courses):
-
     for course_it in courses:
         course, create = Course.objects.get_or_create(no=course_it.dept + course_it.no)
 
@@ -187,14 +186,12 @@ def archive_courses(courses):
         course.ge = course_it.ge
         course.save()
 
-        return create
-
 
 def crawl_dept_courses(dept_code):
     html = reterieve_html(DEPT_URL + dept_code)
     soup = bs4.BeautifulSoup(html, 'html.parser')
 
-    dept_name =
+    # dept_name =
 
     class_list = ['course_y1', 'course_y2', 'course_y3', 'course_y4']
 
