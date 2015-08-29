@@ -20,6 +20,11 @@ class Course(models.Model):
     limit = models.IntegerField(blank=True, null=True)
     prerequisite = models.BooleanField(default=False, blank=True)
 
+    clas = models.CharField(max_length=10, blank=True)
+    dept = models.CharField(max_length=10, blank=True)
+    serial = models.CharField(max_length=20, blank=True)
+
+
     ge = models.CharField(max_length=80, blank=True)
 
     hit = models.IntegerField(default=0)

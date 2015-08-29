@@ -1,19 +1,41 @@
+# -*- coding: utf-8 -*-
+
 import re
 import bs4
 import requests
 import traceback
 import progressbar
 import threadpool
+import operator
 from threading import Thread
-from data_center.models import Course, Department
-from data_center.const import week_dict, course_dict
+# from data_center.models import Course, Department
+# from data_center.const import week_dict, course_dict
 
-url = 'https://www.ccxp.nthu.edu.tw/ccxp/INQUIRE/JH/6/6.2/6.2.9/JH629002.php'
-dept_url = 'https://www.ccxp.nthu.edu.tw/ccxp/INQUIRE/JH/6/6.2/6.2.3/JH623002.php'  # noqa
+BASE_URL = 'http://class-qry.acad.ncku.edu.tw/qry/'
+DEPT_URL = 'http://class-qry.acad.ncku.edu.tw/qry/qry001.php?dept_no='
+URL = 'https://www.ccxp.nthu.edu.tw/ccxp/INQUIRE/JH/6/6.2/6.2.3/JH623002.php'  # noqa
 YS = '104|10'
 cond = 'a'
 T_YEAR = 104
 C_TERM = 10
+
+
+class Course_Struct(object):
+    def __init__(self):
+        self.dept = None
+        self.no = None
+        self.serial = None
+        self.ge = None
+        self.clas = None
+        self.time = None
+        self.note = None
+        self.objective = None
+        self.prerequisite = None
+        self.credit = None
+        self.limit = None
+
+    def __str__(self):
+        return str((self.dept, self.no, self.serial, self.time))
 
 
 def dept_2_html(dept, ACIXSTORE, auth_num):
@@ -35,7 +57,7 @@ def dept_2_html(dept, ACIXSTORE, auth_num):
 
 def cou_code_2_html(cou_code, ACIXSTORE, auth_num):
     try:
-        r = requests.post(url,
+        r = requests.post(URL,
                           data={
                               'ACIXSTORE': ACIXSTORE,
                               'YS': YS,
@@ -47,6 +69,15 @@ def cou_code_2_html(cou_code, ACIXSTORE, auth_num):
         print traceback.format_exc()
         print cou_code
         return 'QAQ, what can I do?'
+
+
+def reterieve_html(url):
+    try:
+        r = requests.get(url)
+        return r.content
+    except:
+        print traceback.format_exc()
+        return 'Failed to crawl :' + str(url)
 
 
 def syllabus_2_html(ACIXSTORE, course):
@@ -97,66 +128,103 @@ def trim_syllabus(ACIXSTORE, soup):
     return syllabus
 
 
-def trim_td(td):
-    return td.get_text().strip()
+def trim_element(element):
+    return element.get_text().strip()
 
 
-def collect_class_info(tr, cou_code):
-    tds = tr.find_all('td')
-
-    no = trim_td(tds[0])
-    time = trim_td(tds[3])
-    note = trim_td(tds[7])
-    objective = trim_td(tds[9])
-    prerequisite = trim_td(tds[10])
-    credit = trim_td(tds[2])
-    credit = int(credit) if credit.isdigit() else 0
-    limit = trim_td(tds[6])
-    limit = int(limit) if limit.isdigit() else 0
-    ge = ''
-    title = tds[1].contents
-    if len(title) > 1:
-        title = title[1].contents
-        if len(title) > 1:
-            ge = title[1].get_text().strip()
-
-    course, create = Course.objects.get_or_create(no=no)
-
-    if cou_code not in course.code:
-        course.code = '%s %s' % (course.code, cou_code)
-
-    course.credit = credit
-    course.time = time
-    course.time_token = get_token(time)
-    course.limit = limit
-    course.note = note
-    course.objective = objective
-    course.prerequisite = prerequisite
-    course.ge = ge
-    course.save()
-
-    return create
-
-
-def crawl_course_info(ACIXSTORE, auth_num, cou_code):
-    html = cou_code_2_html(cou_code, ACIXSTORE, auth_num)
+def get_dept_list():
+    html = reterieve_html(BASE_URL)
     soup = bs4.BeautifulSoup(html, 'html.parser')
 
-    trs = soup.find_all('tr', class_='class3')
-    trs = [tr for tr in trs if len(tr.find_all('td')) > 1]
-    for tr in trs:
-        collect_class_info(
-            tr, cou_code.strip()
-        )
+    dept_divs = soup.find_all('div', class_='dept')
+    dept_a_s = map(lambda x: x.find('a'), dept_divs)
+    dept_names = map(lambda x: x.get_text().strip()[2:4], dept_a_s)
+
+    return dept_names
 
 
-def crawl_course(ACIXSTORE, auth_num, cou_codes):
+def collect_course_info(tr):
+    tds = tr.find_all('td')
+
+    course = Course_Struct()
+
+    course.dept = trim_element(tds[1])
+    course.no = trim_element(tds[2])
+    course.serial = trim_element(tds[3])
+    course.clas = trim_element(tds[4])
+    course.ge = trim_element(tds[10])
+    course.time = trim_element(tds[16])
+    course.note = trim_element(tds[18])
+    course.objective = ""
+    course.prerequisite = trim_element(tds[19])
+
+    course.credit = trim_element(tds[12])
+    course.credit = int(course.credit) if course.credit.isdigit() else 0
+
+    #XXX: limit should be sum up of selected and vacant slot
+    course.limit = trim_element(tds[14])
+    course.limit = int(course.limit) if course.limit.isdigit() else 0
+
+    return course
+
+
+def archive_courses(courses):
+
+    for course_it in courses:
+        course, create = Course.objects.get_or_create(no=course_it.dept + course_it.no)
+
+        course.dept = course_it.dept
+        course.serial = course_it.serial
+        course.clas = course_it.serial
+
+        course.credit = course_it.credit
+        course.time = course_it.time
+        course.time_token = get_token(course_it.time)
+        course.limit = course_it.limit
+        course.note = course_it.note
+        course.objective = course_it.objective
+        course.prerequisite = course_it.prerequisite
+        course.ge = course_it.ge
+        course.save()
+
+        return create
+
+
+def crawl_dept_courses(dept_code):
+    html = reterieve_html(DEPT_URL + dept_code)
+    soup = bs4.BeautifulSoup(html, 'html.parser')
+
+    dept_name =
+
+    class_list = ['course_y1', 'course_y2', 'course_y3', 'course_y4']
+
+    courses_of_yrs = map(lambda x: soup.find_all('tr', class_=x), class_list)
+
+    courses_trs = reduce(operator.add, courses_of_yrs, [])
+    courses = map(collect_course_info, courses_trs)
+
+    courses_without_no = filter(lambda x: x.no == '', courses)
+    courses = filter(lambda x: x.no != '', courses)
+    courses_needs_merge = filter(lambda x: x.serial in reduce(lambda y,z: y + [z.serial], courses, []), courses_without_no)
+
+    for course in courses_needs_merge:
+        print 'Merging: ' + course.serial
+        target_course = filter(lambda x: (x.serial == course.serial) and (x.clas == course.clas), courses)[0]
+        target_course.time += course.time
+
+    for x in courses:
+        print x
+
+    archive_courses(courses)
+
+
+def crawl_course():
     threads = []
 
-    for cou_code in cou_codes:
+    for dept_code in get_dept_list():
         t = Thread(
-            target=crawl_course_info,
-            args=(ACIXSTORE, auth_num, cou_code)
+            target=crawl_dept_courses,
+            args=(dept_code,)
         )
         threads.append(t)
         t.start()
@@ -165,16 +233,16 @@ def crawl_course(ACIXSTORE, auth_num, cou_codes):
     for t in progress(threads):
         t.join()
 
-    print 'Crawling syllabus...'
-    pool = threadpool.ThreadPool(50)
-    reqs = threadpool.makeRequests(
-        syllabus_2_html,
-        [([ACIXSTORE, course], {}) for course in Course.objects.all()]
-    )
-    [pool.putRequest(req) for req in reqs]
-    pool.wait()
+    # print 'Crawling syllabus...'
+    # pool = threadpool.ThreadPool(50)
+    # reqs = threadpool.makeRequests(
+        # syllabus_2_html,
+        # [([ACIXSTORE, course], {}) for course in Course.objects.all()]
+    # )
+    # [pool.putRequest(req) for req in reqs]
+    # pool.wait()
 
-    print 'Total course information: %d' % Course.objects.count()
+    # print 'Total course information: %d' % Course.objects.count()
 
 
 def crawl_dept_info(ACIXSTORE, auth_num, dept_code):
@@ -227,6 +295,7 @@ def crawl_dept(ACIXSTORE, auth_num, dept_codes):
 
 def get_token(s):
     try:
-        return week_dict[s[0]] + course_dict[s[1]] + s[2:]
+        # return week_dict[s[0]] + course_dict[s[1]] + s[2:]
+        return s
     except:
         return ''
