@@ -305,7 +305,7 @@ def get_token(s):
         for time in times:
             time_map[week_num_dict[time[0]]] = []
             beg = int(time[3])
-            end = int(time[-1])
+            end = int(time[-2])
 
             if end >= 5:
                 end += 1
