@@ -294,15 +294,17 @@ def get_token(s):
     week_num_dict = {'1':'M', '2': 'T', '3': 'W', '4': 'R', '5': 'F', '6': 'S'}
 
     try:
+        s = s + '['
+
         time_map = {}
 
-        time_regex = re.compile('\[.\].+')
+        time_regex = re.compile('.\].+?\[')
         times = time_regex.findall(s)
         print times
 
         for time in times:
-            time_map[week_num_dict[time[1]]] = []
-            beg = int(time[4])
+            time_map[week_num_dict[time[0]]] = []
+            beg = int(time[3])
             end = int(time[-1])
 
             if end >= 5:
