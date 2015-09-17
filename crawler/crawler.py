@@ -291,7 +291,27 @@ def crawl_dept(ACIXSTORE, auth_num, dept_codes):
 
 
 def get_token(s):
+    week_num_dict = {'1':'M', '2': 'T', '3': 'W', '4': 'R', '5': 'F', '6': 'S'}
+
     try:
+        time_map = {}
+
+        time_regex = re.compile('\[.\].+?')
+        times = time_regex.findall(s)
+
+        for time in times:
+            time_map[week_num_dict[time[1]]] = []
+            beg = int(time[4])
+            end = int(time[-1])
+
+            if end >= 5:
+                end += 1
+
+            for i in range(beg, end + 1):
+                time_map[week_num_dict[time[1]]].append(i)
+
+        print time
+
         # return week_dict[s[0]] + course_dict[s[1]] + s[2:]
         return s
     except:
