@@ -296,7 +296,7 @@ def get_token(s):
     try:
         time_map = {}
 
-        time_regex = re.compile('\[.\].+?')
+        time_regex = re.compile('\[.\].+')
         times = time_regex.findall(s)
         print times
 
