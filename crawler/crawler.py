@@ -296,8 +296,9 @@ def get_token(s):
     try:
         time_map = {}
 
-        time_regex = re.compile('\[.\].+?')
+        time_regex = re.compile('\[.\].*?')
         times = time_regex.findall(s)
+        print times
 
         for time in times:
             time_map[week_num_dict[time[1]]] = []
@@ -310,7 +311,6 @@ def get_token(s):
             for i in range(beg, end + 1):
                 time_map[week_num_dict[time[1]]].append(i)
 
-        print time
 
         # return week_dict[s[0]] + course_dict[s[1]] + s[2:]
         return s
