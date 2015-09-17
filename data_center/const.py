@@ -2,7 +2,7 @@
 
 week_dict = {'M': 'a', 'T': 'b', 'W': 'c', 'R': 'd', 'F': 'e', 'S': 'f'}
 
-course_dict = {'1': 'a','2': 'b','3': 'c','4': 'd','n': 'e','5': 'f','6': 'g','7': 'h','8': 'i','9': 'j','a': 'k','b': 'l','c': 'm'}
+course_dict = {'1': 'a','2': 'b','3': 'c','4': 'd','N': 'e','5': 'f','6': 'g','7': 'h','8': 'i','9': 'j','A': 'k','B': 'l','C': 'm', 'D': 'n'}
 
 
 cou_codes = ['ANTH', 'ANTU', 'ASTR', 'BME ', 'BMES', 'CF ', 'CFGE', 'CHE ', 'CHEM', 'CL ', 'CLC ', 'CLU ', 'COM ', 'CS ', 'DL ', 'DMS ', 'ECON', 'EE ', 'EECS', 'EMBA', 'ENE ', 'ESS ', 'FL ', 'FLU ', 'GEC ', 'GE ', 'GEU ', 'GPTS', 'HIS ', 'HSS ', 'HSSU', 'IACS', 'IACU', 'IEEM', 'IEM ', 'ILS ', 'IMBA', 'IPE ', 'IPNS', 'IPT ', 'ISA ', 'ISS ', 'LANG', 'LING', 'LS ', 'LSBS',

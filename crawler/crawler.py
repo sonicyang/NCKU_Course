@@ -177,8 +177,8 @@ def archive_courses(courses):
         course.clas = course_it.serial
 
         course.credit = course_it.credit
-        course.time = course_it.time
-        course.time_token = get_token(course_it.time)
+        course.time = parse_to_nthu(course_it.time)
+        course.time_token = get_token(course.time)
         course.limit = course_it.limit
         course.note = course_it.note
         course.objective = course_it.objective
@@ -290,33 +290,60 @@ def crawl_dept(ACIXSTORE, auth_num, dept_codes):
     print 'Total department information: %d' % Department.objects.count()
 
 
-def get_token(s):
+def parse_to_nthu(s):
     week_num_dict = {'1':'M', '2': 'T', '3': 'W', '4': 'R', '5': 'F', '6': 'S'}
+    s = s + '['
 
-    try:
-        s = s + '['
+    time_map = {'M':[], 'T':[], 'W':[], 'R':[], 'F':[], 'S':[] }
 
-        time_map = {}
+    time_regex = re.compile('.\].+?\[')
+    times = time_regex.findall(s)
 
-        time_regex = re.compile('.\].+?\[')
-        times = time_regex.findall(s)
-        print times
+    for time in times:
+        if 90 > ord(time[2]) > 57 :
+            if ord(time[2]) == 78:
+                beg = 5
+            else:
+                beg = ord(time[2]) - 54
+        else:
+            beg = int(time[2])
+            if beg >= 5:
+                beg += 1
 
-        for time in times:
-            time_map[week_num_dict[time[0]]] = []
-            beg = int(time[3])
+        if 90 > ord(time[-2]) > 57 :
+            if ord(time[-2]) == 78:
+                end = 5
+            else:
+                end = ord(time[-2]) - 54
+        else:
             end = int(time[-2])
-
             if end >= 5:
                 end += 1
 
-            for i in range(beg, end + 1):
-                time_map[week_num_dict[time[1]]].append(i)
 
-        print time_map
+        for i in range(beg, end + 1):
+            time_map[week_num_dict[time[0]]].append(i)
 
+    ss = ""
+    for key, value in time_map.iteritems():
+        value.sort()
+        for v in value:
+            ss += str(key)
+            if v < 5:
+                ss += str(v)
+            elif v == 5:
+                ss += 'N'
+            elif 11 > v > 5:
+                ss += str(v - 1)
+            else:
+                ss += chr(int(v) + 54)
 
-        # return week_dict[s[0]] + course_dict[s[1]] + s[2:]
-        return s
+    return ss
+
+def get_token(ss):
+
+    try:
+        return week_dict[ss[0]] + course_dict[ss[1]] + ss[2:]
+    # return s
     except:
         return ''
