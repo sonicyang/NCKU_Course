@@ -17,7 +17,7 @@ SYM_URL = 'http://class-qry.acad.ncku.edu.tw/syllabus/online_display.php'
 URL = 'https://www.ccxp.nthu.edu.tw/ccxp/INQUIRE/JH/6/6.2/6.2.3/JH623002.php'  # noqa
 cond = 'a'
 T_YEAR = 104
-C_TERM = 10
+C_TERM = 1
 YS = str(T_YEAR) + '|' + str(C_TERM)
 
 
@@ -36,6 +36,8 @@ class Course_Struct(object):
         self.limit = None
         self.room = None
         self.teacher = None
+        self.syllabus = None
+        self.etitle = None
 
     def __str__(self):
         return str((self.dept, self.no, self.serial, self.time))
@@ -76,38 +78,32 @@ def cou_code_2_html(cou_code, ACIXSTORE, auth_num):
 
 def reterieve_html(url):
     try:
-        r = requests.get(url)
-        return r.content
+        while True:
+            r = requests.get(url)
+            if r.status_code == 200:
+                return r.content
+            elif r.status_code == 404:
+                return ''
+
     except:
         print traceback.format_exc()
         return 'Failed to crawl :' + str(url)
 
 
-def syllabus_2_html(ACIXSTORE, course):
-    url = 'https://www.ccxp.nthu.edu.tw/ccxp/INQUIRE/JH/common/Syllabus/1.php?ACIXSTORE=%s&c_key=%s' % (ACIXSTORE, course.no.replace(' ', '%20'))  # noqa
+def crawl_syllabus(course):
+    url = SYM_URL + "?syear=0%s&sem=%s&co_no=%s&class_code=%s" % (T_YEAR, C_TERM, course.serial, course.clas)
+
+    html = reterieve_html(url).replace('<br>', '<br/>')
+    soup = bs4.BeautifulSoup(html, 'html.parser')
     try:
-        while True:
-            r = requests.get(url)
-            html = r.content.decode('big5', 'ignore').encode('utf8', 'ignore')
-            soup = bs4.BeautifulSoup(html, 'html.parser')
-            tables = soup.find_all('table')
-            if tables:
-                trs = tables[0].find_all('tr')
-                break
-            else:
-                continue
-        for i in range(2, 5):
-            trs[i].find_all('td')[1]['colspan'] = 5
-        course.chi_title = trs[2].find_all('td')[1].get_text()
-        course.eng_title = trs[3].find_all('td')[1].get_text()
-        course.teacher = trs[4].find_all('td')[1].get_text()
-        course.room = trs[5].find_all('td')[3].get_text()
-        course.syllabus = trim_syllabus(ACIXSTORE, soup)
-        course.save()
+        course.etitle = soup.find('div', { 'id': 'header' }).find_all('span')[1].find_all('br')[1].get_text()
+        course_outline = soup.find('div', { 'id': 'container' })
+        [x.extract() for x in course_outline.find_all('div', { 'id': 'header' })]
+        course.syllabus = str(course_outline.contents[2])
     except:
-        print traceback.format_exc()
-        print course
-        return 'QAQ, what can I do?'
+        print course.dept + '-' + course.no
+        print soup
+        print "Error On Parsing Syllabus"
 
 
 def trim_syllabus(ACIXSTORE, soup):
@@ -126,7 +122,6 @@ def trim_syllabus(ACIXSTORE, soup):
         a['href'] = href
         a['target'] = '_blank'
     syllabus = ''.join(map(unicode, soup.body.contents))
-    syllabus = syllabus.replace('</br></br></br></br></br>', '')
     syllabus = syllabus.replace('<br><br><br><br><br>', '')
     return syllabus
 
@@ -171,6 +166,8 @@ def collect_course_info(tr):
     course.limit = trim_element(tds[14])
     course.limit = int(course.limit) if course.limit.isdigit() else 0
 
+    crawl_syllabus(course)
+
     return course
 
 
@@ -191,11 +188,12 @@ def archive_courses(courses):
         course.prerequisite = course_it.prerequisite
         # course.ge = course_it.ge
         course.chi_title = course_it.ctitle
+        course.eng_title = course_it.etitle
+
 
         course.teacher = course_it.teacher
-        print course_it.teacher
         course.room = course_it.room
-        print course_it.room
+        course.syllabus = course_it.syllabus
         course.save()
 
 
@@ -237,10 +235,10 @@ def crawl_course():
         )
         threads.append(t)
         t.start()
-        t.join()
 
-    # progress = progressbar.ProgressBar()
-    # for t in progress(threads):
+    progress = progressbar.ProgressBar()
+    for t in progress(threads):
+        t.join()
 
     # print 'Crawling syllabus...'
     # pool = threadpool.ThreadPool(50)
