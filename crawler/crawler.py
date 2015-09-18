@@ -13,11 +13,12 @@ from data_center.const import week_dict, course_dict
 
 BASE_URL = 'http://class-qry.acad.ncku.edu.tw/qry/'
 DEPT_URL = 'http://class-qry.acad.ncku.edu.tw/qry/qry001.php?dept_no='
+SYM_URL = 'http://class-qry.acad.ncku.edu.tw/syllabus/online_display.php'
 URL = 'https://www.ccxp.nthu.edu.tw/ccxp/INQUIRE/JH/6/6.2/6.2.3/JH623002.php'  # noqa
-YS = '104|10'
 cond = 'a'
 T_YEAR = 104
 C_TERM = 10
+YS = str(T_YEAR) + '|' + str(C_TERM)
 
 
 class Course_Struct(object):
@@ -25,7 +26,7 @@ class Course_Struct(object):
         self.dept = None
         self.no = None
         self.serial = None
-        self.ge = None
+        self.ctitle = None
         self.clas = None
         self.time = None
         self.note = None
@@ -33,6 +34,8 @@ class Course_Struct(object):
         self.prerequisite = None
         self.credit = None
         self.limit = None
+        self.room = None
+        self.teacher = None
 
     def __str__(self):
         return str((self.dept, self.no, self.serial, self.time))
@@ -129,7 +132,7 @@ def trim_syllabus(ACIXSTORE, soup):
 
 
 def trim_element(element):
-    return element.get_text().strip()
+    return element.get_text().strip(" \n\r")
 
 
 def get_dept_list():
@@ -152,11 +155,14 @@ def collect_course_info(tr):
     course.no = trim_element(tds[2])
     course.serial = trim_element(tds[3])
     course.clas = trim_element(tds[4])
-    course.ge = trim_element(tds[10])
+    course.ctitle = trim_element(tds[10])
     course.time = trim_element(tds[16])
     course.note = trim_element(tds[18])
     course.objective = ""
     course.prerequisite = trim_element(tds[19])
+
+    course.teacher = trim_element(tds[13])
+    course.room = trim_element(tds[17])
 
     course.credit = trim_element(tds[12])
     course.credit = int(course.credit) if course.credit.isdigit() else 0
@@ -170,7 +176,7 @@ def collect_course_info(tr):
 
 def archive_courses(courses):
     for course_it in courses:
-        course, create = Course.objects.get_or_create(no=course_it.dept + course_it.no)
+        course, create = Course.objects.get_or_create(no=course_it.dept + '-' + course_it.no)
 
         course.dept = course_it.dept
         course.serial = course_it.serial
@@ -183,7 +189,13 @@ def archive_courses(courses):
         course.note = course_it.note
         course.objective = course_it.objective
         course.prerequisite = course_it.prerequisite
-        course.ge = course_it.ge
+        # course.ge = course_it.ge
+        course.chi_title = course_it.ctitle
+
+        course.teacher = course_it.teacher
+        print course_it.teacher
+        course.room = course_it.room
+        print course_it.room
         course.save()
 
 
@@ -225,10 +237,10 @@ def crawl_course():
         )
         threads.append(t)
         t.start()
-
-    progress = progressbar.ProgressBar()
-    for t in progress(threads):
         t.join()
+
+    # progress = progressbar.ProgressBar()
+    # for t in progress(threads):
 
     # print 'Crawling syllabus...'
     # pool = threadpool.ThreadPool(50)
@@ -322,7 +334,8 @@ def parse_to_nthu(s):
 
 
         for i in range(beg, end + 1):
-            time_map[week_num_dict[time[0]]].append(i)
+            if i not in time_map[week_num_dict[time[0]]]:
+                time_map[week_num_dict[time[0]]].append(i)
 
     ss = ""
     for key, value in time_map.iteritems():
@@ -339,6 +352,7 @@ def parse_to_nthu(s):
                 ss += chr(int(v) + 54)
 
     return ss
+
 
 def get_token(ss):
 
