@@ -1,3 +1,4 @@
+
 <div id="syllabus">
   <style>
   .class1 {  background-color: #6699ff; font-size: 11pt; color: #ffffff; line-height: 2em}
@@ -5,9 +6,8 @@
   .class3 {  background-color: #ffffee; font-size: 10pt; color: #333; vertical-align: middle; text-align: center}
   .class4 {  background-color: #ffffee; font-size: 14pt; color: #000099}
   .center {
-    width: -moz-fit-content;
-    width: -webkit-fit-content;
-    width: fit-content;
+    background-color:#DED;
+    width: 1024px;
     margin: auto;
     padding: 15px;
   }
@@ -20,7 +20,7 @@
   .jumbotron table:nth-of-type(4) tr:nth-of-type(2) td {padding: 25px; padding-bottom: 0}
   </style>
 
-  <div class="jumbotron center">
+  <div class="center">
     <center><h2>{{ course.chi_title }}</h2><h4>{{ course.eng_title }}</h4></center>
     {{ course.syllabus|safe|escape }}
     <div class="">
@@ -52,4 +52,5 @@
       $('.mfp-close').click(function() {$.magnificPopup.close()});
     })
   </script>
+
 </div>

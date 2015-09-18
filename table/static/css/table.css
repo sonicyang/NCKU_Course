@@ -125,7 +125,7 @@
 
 @media screen and (min-width: 768px) {
   .mfp-ajax-holder .mfp-content {
-    width: 680px;
+    width: 1024px;
   }
   .mfp-prevent-close > table{
     width: 100%;
