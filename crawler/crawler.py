@@ -10,14 +10,13 @@ import operator
 from threading import Thread
 from data_center.models import Course, Department
 from data_center.const import week_dict, course_dict
+from data_center.const import T_YEAR, C_TERM
 
 BASE_URL = 'http://class-qry.acad.ncku.edu.tw/qry/'
 DEPT_URL = 'http://class-qry.acad.ncku.edu.tw/qry/qry001.php?dept_no='
 SYM_URL = 'http://class-qry.acad.ncku.edu.tw/syllabus/online_display.php'
 URL = 'https://www.ccxp.nthu.edu.tw/ccxp/INQUIRE/JH/6/6.2/6.2.3/JH623002.php'  # noqa
 cond = 'a'
-T_YEAR = 104
-C_TERM = 1
 YS = str(T_YEAR) + '|' + str(C_TERM)
 
 
@@ -142,12 +141,15 @@ def archive_courses(courses):
             course.prerequisite = course_it.prerequisite
             # course.ge = course_it.ge
             course.chi_title = course_it.ctitle
-            course.eng_title = course_it.etitle
+            # XXX:should be etitle
+            course.eng_title = course_it.ctitle
 
 
             course.teacher = course_it.teacher
             course.room = course_it.room
-            course.syllabus = course_it.syllabus
+            # course.syllabus = course_it.syllabus
+            # XXX: should enable crawl
+            course.syllabus = ""
             course.save()
 
         except Exception as ex:
@@ -222,37 +224,39 @@ def crawl_dept_info(dept_code):
     # dept_name =
 
     class_list = []
-    [class_list.append('course_y' + str(i)) for i in range(0, 8)]
+    [class_list.append('course_y' + str(i)) for i in range(1, 8)]
 
     courses_of_yrs = map(lambda x: soup.find_all('tr', class_=x), class_list)
 
     i = 0
     for course_tr in courses_of_yrs:
         i += 1
-        courses = map(collect_course_info, course_tr)
-        courses = filter(lambda x: x.no != '', courses)
-        # courses = filter(lambda x: x.optional == True, courses)
 
-        # Get something like ``EE  103BA``V
+        if len(course_tr) != 0:
+            courses = map(collect_course_info, course_tr)
+            courses = filter(lambda x: x.no != '', courses)
+            # courses = filter(lambda x: x.optional == True, courses)
 
-        clas_map = {'甲':'A', '乙':'B', '丙':'C'}
-        for course in courses:
-            if course.clas.encode('utf8') == '':
-                course.clas = '甲'.decode('utf8')
-            for key, value in clas_map.iteritems():
-                if key in course.clas.encode('utf8'):
-                    dept_name = (dept_code + '  ' + str(int(T_YEAR) - i + 5) + 'B' + value)
-                    print dept_name
+            # Get something like ``EE  103BA``V
 
-                    department = Department.objects.get_or_create(
-                        dept_name=dept_name)[0]
-                    try:
-                        course_obj = Course.objects.filter(dept__contains=dept_code).get(no__contains=course.no)
-                        department.required_course.add(course_obj)
-                    except Exception as ex:
-                        print ex
-                        print dept_code, course.no, 'gg'
-                    department.save()
+            clas_map = {'甲':'A', '乙':'B', '丙':'C'}
+            for course in courses:
+                if course.clas.encode('utf8') == '':
+                    course.clas = '甲'.decode('utf8')
+                for key, value in clas_map.iteritems():
+                    if key in course.clas.encode('utf8'):
+                        dept_name = (dept_code + '  ' + str(int(T_YEAR) - i + 1) + 'B' + value)
+                        print dept_name
+
+                        department = Department.objects.get_or_create(
+                            dept_name=dept_name)[0]
+                        try:
+                            course_obj = Course.objects.filter(dept__contains=dept_code).get(no__contains=course.no)
+                            department.required_course.add(course_obj)
+                        except Exception as ex:
+                            print ex
+                            print dept_code, course.no, 'gg'
+                        department.save()
 
 
 def crawl_dept():

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+T_YEAR = 104
+C_TERM = 1
 
 week_dict = {'M': 'a', 'T': 'b', 'W': 'c', 'R': 'd', 'F': 'e', 'S': 'f', 'U': 'g'}
 

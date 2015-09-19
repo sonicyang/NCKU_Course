@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from data_center.models import Course, Department
-from data_center.const import DEPT_CHOICE, GEC_CHOICE, GE_CHOICE
+from data_center.const import DEPT_CHOICE, GEC_CHOICE, GE_CHOICE, T_YEAR, C_TERM
 from django.views.decorators.cache import cache_page
 from django import forms
 
@@ -117,19 +117,25 @@ def generate_dept_required_choice():
     departments = Department.objects.all()
     for department in departments:
         dept_name = department.dept_name
-        year = {'104': '一年級', '103': '二年級', '102': '三年級', '101': '四年級'}. \
-            get(dept_name[4:7], '')
+
+        yr_translate_map = {}
+        for i in range(0, 8):
+            yr_translate_map[T_YEAR - i] = ' ' + str(i + 1) + '年級'
+
+        year = yr_translate_map. \
+            get(int(dept_name[4:-2]), '')
+
         degree = {'B': '大學部', 'D': '博士班', 'M': '碩士班', 'P': '專班'}. \
-            get(dept_name[7], '')
+            get(dept_name[-2], '')
         chi_dept_name = degree
 
-        if dept_name[7] == 'B':
+        if dept_name[-2] == 'B':
             chi_dept_name += year
-            chi_dept_name += {'BA': '清班', 'BB': '華班', 'BC': '梅班'}. \
-                get(dept_name[7:], '')
+            chi_dept_name += {'BA': '甲班', 'BB': '乙班', 'BC': '丙班'}. \
+                get(dept_name[-2:], '')
 
         choices += ((dept_name, chi_dept_name),)
-    return sorted(choices)
+    return sorted(choices, key = lambda x: x[1])
 
 
 class CourseSearchForm(forms.Form):
