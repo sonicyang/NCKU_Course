@@ -173,12 +173,8 @@ def crawl_dept_courses(dept_code):
     courses_needs_merge = filter(lambda x: x.serial in reduce(lambda y,z: y + [z.serial], courses, []), courses_without_no)
 
     for course in courses_needs_merge:
-        print 'Merging: ' + course.serial
         target_course = filter(lambda x: (x.serial == course.serial) and (x.clas == course.clas), courses)[0]
         target_course.time += course.time
-
-    for x in courses:
-        print x
 
     archive_courses(courses)
 
@@ -198,16 +194,7 @@ def crawl_course():
     for t in progress(threads):
         t.join()
 
-    # print 'Crawling syllabus...'
-    # pool = threadpool.ThreadPool(50)
-    # reqs = threadpool.makeRequests(
-        # syllabus_2_html,
-        # [([ACIXSTORE, course], {}) for course in Course.objects.all()]
-    # )
-    # [pool.putRequest(req) for req in reqs]
-    # pool.wait()
-
-    # print 'Total course information: %d' % Course.objects.count()
+    print 'Total course information: %d' % Course.objects.count()
 
 
 def crawl_dept_info(dept_code):
@@ -266,10 +253,10 @@ def crawl_dept():
         )
         threads.append(t)
         t.start()
-        t.join()
 
-    # progress = progressbar.ProgressBar()
-    # for t in progress(threads):
+    progress = progressbar.ProgressBar()
+    for t in progress(threads):
+        t.join()
 
     print 'Total department information: %d' % Department.objects.count()
 
