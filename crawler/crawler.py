@@ -141,15 +141,12 @@ def archive_courses(courses):
             course.prerequisite = course_it.prerequisite
             # course.ge = course_it.ge
             course.chi_title = course_it.ctitle
-            # XXX:should be etitle
-            course.eng_title = course_it.ctitle
+            course.eng_title = course_it.etitle
 
 
             course.teacher = course_it.teacher
             course.room = course_it.room
-            # course.syllabus = course_it.syllabus
-            # XXX: should enable crawl
-            course.syllabus = ""
+            course.syllabus = course_it.syllabus
             course.save()
 
         except Exception as ex:
