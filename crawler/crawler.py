@@ -38,6 +38,7 @@ class Course_Struct(object):
         self.teacher = None
         self.syllabus = None
         self.etitle = None
+        self.optional = None
 
     def __str__(self):
         return str((self.dept, self.no, self.serial, self.time))
@@ -151,7 +152,7 @@ def collect_course_info(tr):
     course.dept = trim_element(tds[1])
     course.no = trim_element(tds[2])
     course.serial = trim_element(tds[3])
-    course.clas = trim_element(tds[4])
+    course.clas = trim_element(tds[5])
     course.ctitle = trim_element(tds[10])
     course.time = trim_element(tds[16])
     course.note = trim_element(tds[18])
@@ -164,11 +165,13 @@ def collect_course_info(tr):
     course.credit = trim_element(tds[12])
     course.credit = int(course.credit) if course.credit.isdigit() else 0
 
+    course.optional = (False if trim_element(tds[11]).encode('utf8') == "必修" else True)
+
     #XXX: limit should be sum up of selected and vacant slot
     course.limit = trim_element(tds[14])
     course.limit = int(course.limit) if course.limit.isdigit() else 0
 
-    crawl_syllabus(course)
+    # crawl_syllabus(course)
 
     return course
 
@@ -261,50 +264,64 @@ def crawl_course():
     # print 'Total course information: %d' % Course.objects.count()
 
 
-def crawl_dept_info(ACIXSTORE, auth_num, dept_code):
-    html = dept_2_html(dept_code, ACIXSTORE, auth_num)
+def crawl_dept_info(dept_code):
+    if 'A' in dept_code:
+        # GE courses won't be handle here
+        return
+
+    html = reterieve_html(DEPT_URL + dept_code)
     soup = bs4.BeautifulSoup(html, 'html.parser')
-    divs = soup.find_all('div', class_='newpage')
 
-    for div in divs:
-        # Get something like ``EE  103BA``
-        dept_name = div.find_all('font')[0].get_text().strip()
-        dept_name = dept_name.replace('B A', 'BA')
-        dept_name = dept_name.replace('B B', 'BB')
-        try:
-            dept_name = re.search('\((.*?)\)', dept_name).group(1)
-        except:
-            # For all student (Not important for that dept.)
-            continue
+    # dept_name =
 
-        trs = div.find_all('tr', bgcolor="#D8DAEB")
-        department = Department.objects.get_or_create(
-            dept_name=dept_name)[0]
-        for tr in trs:
-            tds = tr.find_all('td')
-            cou_no = tds[0].get_text()
-            try:
-                course = Course.objects.get(no__contains=cou_no)
-                department.required_course.add(course)
-            except:
-                print cou_no, 'gg'
-        department.save()
+    class_list = []
+    [class_list.append('course_y' + str(i)) for i in range(0, 8)]
+
+    courses_of_yrs = map(lambda x: soup.find_all('tr', class_=x), class_list)
+
+    i = 0
+    for course_tr in courses_of_yrs:
+        i += 1
+        courses = map(collect_course_info, course_tr)
+        courses = filter(lambda x: x.no != '', courses)
+        # courses = filter(lambda x: x.optional == True, courses)
+
+        # Get something like ``EE  103BA``V
+
+        clas_map = {'甲':'A', '乙':'B', '丙':'C'}
+        for course in courses:
+            if course.clas.encode('utf8') == '':
+                course.clas = '甲'.decode('utf8')
+            for key, value in clas_map.iteritems():
+                if key in course.clas.encode('utf8'):
+                    dept_name = (dept_code + '  ' + str(int(T_YEAR) - i + 5) + 'B' + value)
+                    print dept_name
+
+                    department = Department.objects.get_or_create(
+                        dept_name=dept_name)[0]
+                    try:
+                        course_obj = Course.objects.filter(dept__contains=dept_code).get(no__contains=course.no)
+                        department.required_course.add(course_obj)
+                    except Exception as ex:
+                        print ex
+                        print dept_code, course.no, 'gg'
+                    department.save()
 
 
-def crawl_dept(ACIXSTORE, auth_num, dept_codes):
+def crawl_dept():
     threads = []
 
-    for dept_code in dept_codes:
+    for dept_code in get_dept_list():
         t = Thread(
             target=crawl_dept_info,
-            args=(ACIXSTORE, auth_num, dept_code)
+            args=(dept_code,)
         )
         threads.append(t)
         t.start()
-
-    progress = progressbar.ProgressBar()
-    for t in progress(threads):
         t.join()
+
+    # progress = progressbar.ProgressBar()
+    # for t in progress(threads):
 
     print 'Total department information: %d' % Department.objects.count()
 

@@ -12,6 +12,7 @@ $(function() {
     code_4 = code;
     while (code_4.length < 4)
       code_4 += ' ';
+    console.log(code_4);
     $('#ge-option').hide();
     $('#gec-option').hide();
     $('#dept-required-option').hide();
