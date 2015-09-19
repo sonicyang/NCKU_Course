@@ -117,7 +117,7 @@ def collect_course_info(tr):
     course.limit = trim_element(tds[14])
     course.limit = int(course.limit) if course.limit.isdigit() else 0
 
-    # crawl_syllabus(course)
+    crawl_syllabus(course)
 
     return course
 
