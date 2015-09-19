@@ -1,7 +1,7 @@
-var moduleNTHUCourse = angular.module('ModuleNTHUCourse', ['ui.bootstrap']);
+var moduleNCKUCourse = angular.module('ModuleNCKUCourse', ['ui.bootstrap']);
 var semester = '10410';
 
-moduleNTHUCourse.filter('courseInThatTime', function() {
+moduleNCKUCourse.filter('courseInThatTime', function() {
   return function(input, time) {
     var out = [];
     for (var i in input) {
@@ -12,7 +12,7 @@ moduleNTHUCourse.filter('courseInThatTime', function() {
   };
 });
 
-moduleNTHUCourse.filter('showQuery', function() {
+moduleNCKUCourse.filter('showQuery', function() {
   return function(input, added_course) {
     var ids = [];
     for (var i in added_course)
@@ -25,7 +25,7 @@ moduleNTHUCourse.filter('showQuery', function() {
   };
 });
 
-moduleNTHUCourse.filter('limit', function() {
+moduleNCKUCourse.filter('limit', function() {
   return function(input, limit, begin) {
     if (Math.abs(Number(limit)) === Infinity) {
       limit = Number(limit);
@@ -53,7 +53,7 @@ moduleNTHUCourse.filter('limit', function() {
   };
 });
 
-moduleNTHUCourse.controller('CourseCtrl', function($scope, $filter) {
+moduleNCKUCourse.controller('CourseCtrl', function($scope, $filter) {
   $scope.fetch = {};
   $scope.query = [];
   $scope.currentPage = 0;

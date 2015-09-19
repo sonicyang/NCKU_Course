@@ -1,5 +1,5 @@
 """
-Django settings for NTHU_Course project.
+Django settings for NCKU_Course project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -57,13 +57,13 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'NTHU_Course.urls'
+ROOT_URLCONF = 'NCKU_Course.urls'
 
-WSGI_APPLICATION = 'NTHU_Course.wsgi.application'
+WSGI_APPLICATION = 'NCKU_Course.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-CONFIG_PATH = os.path.join(BASE_DIR, 'NTHU_Course/mysql.ini')
+CONFIG_PATH = os.path.join(BASE_DIR, 'NCKU_Course/mysql.ini')
 
 DATABASES = {
     'default': {

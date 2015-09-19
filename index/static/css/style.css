@@ -770,10 +770,7 @@
 
 	#header
 	{
-		position: relative;
-		background: url(../images/header.jpg) no-repeat center;
-		background-attachment: scroll;
-		background-size: cover;
+		/*position: relative;*/
 		text-align: center;
 	}
 	

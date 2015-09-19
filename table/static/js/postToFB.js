@@ -8,16 +8,16 @@ $("#postToFB").click(function() {
     var decodedPng = Base64Binary.decode(encodedPng);
     FB.getLoginStatus(function(response) {
       if (response.status === "connected") {
-        postImageToFacebook(response.authResponse.accessToken, "NTHU Course", "image/png", decodedPng, img_message);
+        postImageToFacebook(response.authResponse.accessToken, "NCKU Course", "image/png", decodedPng, img_message);
       } else if (response.status === "not_authorized") {
         FB.login(function(response) {
-          postImageToFacebook(response.authResponse.accessToken, "NTHU Course", "image/png", decodedPng, img_message);
+          postImageToFacebook(response.authResponse.accessToken, "NCKU Course", "image/png", decodedPng, img_message);
         }, {
           scope: "publish_actions"
         });
       } else {
         FB.login(function(response) {
-          postImageToFacebook(response.authResponse.accessToken, "NTHU Course", "image/png", decodedPng, img_message);
+          postImageToFacebook(response.authResponse.accessToken, "NCKU Course", "image/png", decodedPng, img_message);
         }, {
           scope: "publish_actions"
         });

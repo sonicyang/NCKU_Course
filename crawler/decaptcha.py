@@ -1,5 +1,5 @@
 '''
-NTHU CCXP Decaptcha
+NCKU CCXP Decaptcha
 
 Requires tesseract >= 3.03
 '''

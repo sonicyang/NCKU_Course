@@ -25,7 +25,7 @@ def get_auth_pair(url):
 
 class Command(BaseCommand):
     args = ''
-    help = 'Help crawl the course data from NTHU.'
+    help = 'Help crawl the course data from NCKU.'
 
     def handle(self, *args, **kwargs):
         if len(args) == 0:
