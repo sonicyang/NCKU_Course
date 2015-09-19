@@ -97,6 +97,8 @@ def crawl_syllabus(course):
     soup = bs4.BeautifulSoup(html, 'html.parser')
     try:
         course.etitle = soup.find('div', { 'id': 'header' }).find_all('span')[1].find_all('br')[1].get_text()
+        if course.etitle is None:
+            course.etitle = ""
         course_outline = soup.find('div', { 'id': 'container' })
         [x.extract() for x in course_outline.find_all('div', { 'id': 'header' })]
         course.syllabus = str(course_outline.contents[2])
@@ -173,28 +175,33 @@ def collect_course_info(tr):
 
 def archive_courses(courses):
     for course_it in courses:
-        course, create = Course.objects.get_or_create(no=course_it.dept + '-' + course_it.no)
+        try:
+            course, create = Course.objects.get_or_create(no=course_it.dept + '-' + course_it.no)
 
-        course.dept = course_it.dept
-        course.serial = course_it.serial
-        course.clas = course_it.serial
+            course.dept = course_it.dept
+            course.serial = course_it.serial
+            course.clas = course_it.serial
 
-        course.credit = course_it.credit
-        course.time = parse_to_nthu(course_it.time)
-        course.time_token = get_token(course.time)
-        course.limit = course_it.limit
-        course.note = course_it.note
-        course.objective = course_it.objective
-        course.prerequisite = course_it.prerequisite
-        # course.ge = course_it.ge
-        course.chi_title = course_it.ctitle
-        course.eng_title = course_it.etitle
+            course.credit = course_it.credit
+            course.time = parse_to_nthu(course_it.time)
+            course.time_token = get_token(course.time)
+            course.limit = course_it.limit
+            course.note = course_it.note
+            course.objective = course_it.objective
+            course.prerequisite = course_it.prerequisite
+            # course.ge = course_it.ge
+            course.chi_title = course_it.ctitle
+            course.eng_title = course_it.etitle
 
 
-        course.teacher = course_it.teacher
-        course.room = course_it.room
-        course.syllabus = course_it.syllabus
-        course.save()
+            course.teacher = course_it.teacher
+            course.room = course_it.room
+            course.syllabus = course_it.syllabus
+            course.save()
+
+        except Exception as ex:
+            print ex
+            print course_it
 
 
 def crawl_dept_courses(dept_code):
@@ -203,7 +210,8 @@ def crawl_dept_courses(dept_code):
 
     # dept_name =
 
-    class_list = ['course_y1', 'course_y2', 'course_y3', 'course_y4']
+    class_list = []
+    [class_list.append('course_y' + str(i)) for i in range(0, 8)]
 
     courses_of_yrs = map(lambda x: soup.find_all('tr', class_=x), class_list)
 
@@ -301,10 +309,10 @@ def crawl_dept(ACIXSTORE, auth_num, dept_codes):
 
 
 def parse_to_nthu(s):
-    week_num_dict = {'1':'M', '2': 'T', '3': 'W', '4': 'R', '5': 'F', '6': 'S'}
+    week_num_dict = {'1':'M', '2': 'T', '3': 'W', '4': 'R', '5': 'F', '6': 'S', '7': 'U'}
     s = s + '['
 
-    time_map = {'M':[], 'T':[], 'W':[], 'R':[], 'F':[], 'S':[] }
+    time_map = {'M':[], 'T':[], 'W':[], 'R':[], 'F':[], 'S':[], 'U':[] }
 
     time_regex = re.compile('.\].+?\[')
     times = time_regex.findall(s)
