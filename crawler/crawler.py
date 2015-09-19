@@ -44,39 +44,6 @@ class Course_Struct(object):
         return str((self.dept, self.no, self.serial, self.time))
 
 
-def dept_2_html(dept, ACIXSTORE, auth_num):
-    try:
-        r = requests.post(dept_url,
-                          data={
-                              'SEL_FUNC': 'DEP',
-                              'ACIXSTORE': ACIXSTORE,
-                              'T_YEAR': T_YEAR,
-                              'C_TERM': C_TERM,
-                              'DEPT': dept,
-                              'auth_num': auth_num})
-        return r.content.decode('big5', 'ignore').encode('utf8', 'ignore')
-    except:
-        print traceback.format_exc()
-        print dept
-        return 'QAQ, what can I do?'
-
-
-def cou_code_2_html(cou_code, ACIXSTORE, auth_num):
-    try:
-        r = requests.post(URL,
-                          data={
-                              'ACIXSTORE': ACIXSTORE,
-                              'YS': YS,
-                              'cond': cond,
-                              'cou_code': cou_code,
-                              'auth_num': auth_num})
-        return r.content.decode('big5', 'ignore').encode('utf8', 'ignore')
-    except:
-        print traceback.format_exc()
-        print cou_code
-        return 'QAQ, what can I do?'
-
-
 def reterieve_html(url):
     try:
         while True:
@@ -107,26 +74,6 @@ def crawl_syllabus(course):
         print course.dept + '-' + course.no
         print soup
         print "Error On Parsing Syllabus"
-
-
-def trim_syllabus(ACIXSTORE, soup):
-    href_garbage = '?ACIXSTORE=%s' % ACIXSTORE
-    host = 'https://www.ccxp.nthu.edu.tw'
-    # Remove width
-    for tag in soup.find_all():
-        if 'width' in tag:
-            del tag['width']
-    # Replace link
-    for a in soup.find_all('a'):
-        href = a.get('href', '').replace(href_garbage, '').replace(' ', '%20')
-        # Make relative path to absolute path
-        if 'http' not in href:
-            href = host + href
-        a['href'] = href
-        a['target'] = '_blank'
-    syllabus = ''.join(map(unicode, soup.body.contents))
-    syllabus = syllabus.replace('<br><br><br><br><br>', '')
-    return syllabus
 
 
 def trim_element(element):
