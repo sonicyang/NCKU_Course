@@ -5,7 +5,6 @@ try:
     from crawler.decaptcha import Entrance, DecaptchaFailure
 except ImportError:
     Entrance = None
-from data_center.const import cou_codes
 from data_center.models import Course, Department
 
 

@@ -179,6 +179,7 @@ def archive_courses(courses):
             course, create = Course.objects.get_or_create(no=course_it.dept + '-' + course_it.no)
 
             course.dept = course_it.dept
+            course.code = course_it.dept
             course.serial = course_it.serial
             course.clas = course_it.serial
 
