@@ -48,7 +48,7 @@ def reterieve_html(url):
         while True:
             r = requests.get(url)
             if r.status_code == 200:
-                if 'SQLSTATE[08004]' not in r.content:
+                if 'SQLSTATE' not in r.content:
                     return r.content
             elif r.status_code == 404:
                 return ''
