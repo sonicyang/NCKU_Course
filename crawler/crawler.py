@@ -61,13 +61,13 @@ def reterieve_html(url):
 def crawl_syllabus(course):
     url = SYM_URL + "?syear=0%s&sem=%s&co_no=%s&class_code=%s" % (T_YEAR, C_TERM, course.serial, course.clas)
 
-    html = reterieve_html(url).replace('<br>', '<br/>')
+    html = reterieve_html(url).decode('big5', 'ignore').encode('utf8', 'ignore').replace('<br>', '<br/>')
     soup = bs4.BeautifulSoup(html, 'html.parser')
     try:
         course.eng_title = soup.find('div', { 'id': 'header' }).find_all('span')[1].find_all('br')[1].get_text()
         if course.eng_title is None:
             course.eng_title = ""
-        course_outline = soup.find('div', { 'id': 'container' })
+            coutf8urse_outlin = soup.find('div', { 'id': 'containect() for x in course_outline.find_all('div', { 'id': 'header'  })]r' })
         [x.extract() for x in course_outline.find_all('div', { 'id': 'header' })]
         course.syllabus = str(course_outline.contents[2])
     except:
