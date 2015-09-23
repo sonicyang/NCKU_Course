@@ -1,0 +1,87 @@
+    	#container {
+    		background: none repeat scroll 0 0 #FFFFFF;
+    		border: 1px solid #D9D2A5;
+			width: 1000px;
+			margin: 0 auto;
+			font-size: 15px;
+			line-height: 1.6em;
+			color:  #5A5A50;
+			background-color: #FAF7E9;
+			padding: 0.1em 2em 2em 2em;
+			border-radius: 20px;
+			overflow: hidden;
+		}
+
+		h1 {
+			color: #CC6633;
+			text-shadow: 1px 1px 1px #000;
+			/*font-weight: bold;*/
+			font-size: 26px;
+			line-height: 1.2em;
+		}
+	
+		h2 {
+			color: #3A3126;
+			
+			font-size: 14px !important;
+			/*text-shadow: 0.3px 0.3px  #999;*/
+			/*font-weight: bold;*/
+			border-left: 10px solid #274807;
+			border-bottom: 1px solid #274807;
+			padding-left: 5px;
+		}
+		
+		/*h2:before {
+			content: url("../image/ncku.ico"); padding-right: 5px;
+		}*/
+		
+		.little_title{
+			color: #3A3126;
+			font-size: 15px;
+			/*font-weight: bold;*/
+		}
+
+		a {
+			color:#CC6714;
+			text-decoration: none;
+		}
+	
+		#content {
+			width: 600px;
+			margin-left: 20px;
+			margin-right: 200px;
+		}
+		
+		div.block{
+			padding-bottom: 10px;
+			padding-right: 20px;
+		/*	border-bottom: 1px solid #DDDDDD;*/ 
+		}
+
+		#sidebar {
+			float: right;
+			width: 340px;
+			
+		}
+	
+	.basic_data{
+		background-color: #DED1D1;
+		border: 1px solid #D9D2A5;
+		padding: 0.3em;
+		border-radius: 10px;
+	}
+
+	table{
+		empty-cells: show;
+		margin-left: 1em;
+		border-spacing: 0em;
+		border-collapse:collapse;
+	}
+	table th{
+		padding: 0.462em 0.5em;
+		border: solid 1px #523A0B;
+	}
+	table td{
+		padding: 0.2em;
+		border: solid 1px #523A0B; 
+	}
