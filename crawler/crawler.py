@@ -64,9 +64,9 @@ def crawl_syllabus(course):
     html = reterieve_html(url).replace('<br>', '<br/>')
     soup = bs4.BeautifulSoup(html, 'html.parser')
     try:
-        course.etitle = soup.find('div', { 'id': 'header' }).find_all('span')[1].find_all('br')[1].get_text()
-        if course.etitle is None:
-            course.etitle = ""
+        course.eng_title = soup.find('div', { 'id': 'header' }).find_all('span')[1].find_all('br')[1].get_text()
+        if course.eng_title is None:
+            course.eng_title = ""
         course_outline = soup.find('div', { 'id': 'container' })
         [x.extract() for x in course_outline.find_all('div', { 'id': 'header' })]
         course.syllabus = str(course_outline.contents[2])
@@ -85,6 +85,16 @@ def get_dept_list():
     soup = bs4.BeautifulSoup(html, 'html.parser')
 
     dept_divs = soup.find_all('div', class_='dept')
+    dept_a_s = map(lambda x: x.find('a'), dept_divs)
+    dept_names = map(lambda x: x.get_text().strip()[2:4], dept_a_s)
+
+    return dept_names
+
+def get_inst_list():
+    html = reterieve_html(BASE_URL)
+    soup = bs4.BeautifulSoup(html, 'html.parser')
+
+    dept_divs = soup.find_all('div', class_='institute')
     dept_a_s = map(lambda x: x.find('a'), dept_divs)
     dept_names = map(lambda x: x.get_text().strip()[2:4], dept_a_s)
 
@@ -118,8 +128,6 @@ def collect_course_info(tr):
     course.limit = trim_element(tds[14])
     course.limit = int(course.limit) if course.limit.isdigit() else 0
 
-    crawl_syllabus(course)
-
     return course
 
 
@@ -142,12 +150,10 @@ def archive_courses(courses):
             course.prerequisite = course_it.prerequisite
             # course.ge = course_it.ge
             course.chi_title = course_it.ctitle
-            course.eng_title = course_it.etitle
 
 
             course.teacher = course_it.teacher
             course.room = course_it.room
-            course.syllabus = course_it.syllabus
             course.save()
 
         except Exception as ex:
@@ -194,6 +200,29 @@ def crawl_course():
     progress = progressbar.ProgressBar()
     for t in progress(threads):
         t.join()
+
+
+    threads = []
+    for inst_code in get_inst_list():
+        t = Thread(
+            target=crawl_dept_courses,
+            args=(inst_code,)
+        )
+        threads.append(t)
+        t.start()
+
+    progress = progressbar.ProgressBar()
+    for t in progress(threads):
+        t.join()
+
+    # print 'Crawling syllabus...'
+    # pool = threadpool.ThreadPool(50)
+    # reqs = threadpool.makeRequests(
+        # crawl_syllabus,
+        # [([course], {}) for course in Course.objects.all()]
+    # )
+    # [pool.putRequest(req) for req in reqs]
+    # pool.wait()
 
     print 'Total course information: %d' % Course.objects.count()
 
