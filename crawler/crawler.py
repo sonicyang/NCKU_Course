@@ -215,14 +215,14 @@ def crawl_course():
     for t in progress(threads):
         t.join()
 
-    # print 'Crawling syllabus...'
-    # pool = threadpool.ThreadPool(50)
-    # reqs = threadpool.makeRequests(
-        # crawl_syllabus,
-        # [([course], {}) for course in Course.objects.all()]
-    # )
-    # [pool.putRequest(req) for req in reqs]
-    # pool.wait()
+    print 'Crawling syllabus...'
+    pool = threadpool.ThreadPool(50)
+    reqs = threadpool.makeRequests(
+        crawl_syllabus,
+        [([course], {}) for course in Course.objects.all()]
+    )
+    [pool.putRequest(req) for req in reqs]
+    pool.wait()
 
     print 'Total course information: %d' % Course.objects.count()
 
@@ -260,7 +260,6 @@ def crawl_dept_info(dept_code):
                 for key, value in clas_map.iteritems():
                     if key in course.clas.encode('utf8'):
                         dept_name = (dept_code + '  ' + str(int(T_YEAR) - i + 1) + 'B' + value)
-                        print dept_name
 
                         department = Department.objects.get_or_create(
                             dept_name=dept_name)[0]
@@ -271,6 +270,44 @@ def crawl_dept_info(dept_code):
                             print ex
                             print dept_code, course.no, 'gg'
                         department.save()
+
+
+def crawl_inst_info(dept_code):
+
+    html = reterieve_html(DEPT_URL + dept_code)
+    soup = bs4.BeautifulSoup(html, 'html.parser')
+
+    # dept_name =
+
+    class_list = []
+    [class_list.append('course_y' + str(i)) for i in range(1, 8)]
+
+    courses_of_yrs = map(lambda x: soup.find_all('tr', class_=x), class_list)
+
+
+    i = 0
+    for course_tr in courses_of_yrs:
+        i += 1
+
+        if len(course_tr) != 0:
+            courses = map(collect_course_info, course_tr)
+            courses = filter(lambda x: x.no != '', courses)
+            # courses = filter(lambda x: x.optional == True, courses)
+
+            # Get something like ``EE  103BA``V
+
+            for course in courses:
+                dept_name = (dept_code + '  ' + str(int(T_YEAR) - i + 1) + 'MA')
+
+                department = Department.objects.get_or_create(
+                    dept_name=dept_name)[0]
+                try:
+                    course_obj = Course.objects.filter(dept__contains=dept_code).get(no__contains=course.no)
+                    department.required_course.add(course_obj)
+                except Exception as ex:
+                    print ex
+                    print dept_code, course.no, 'gg'
+                department.save()
 
 
 def crawl_dept():
@@ -287,6 +324,20 @@ def crawl_dept():
     progress = progressbar.ProgressBar()
     for t in progress(threads):
         t.join()
+
+    threads = []
+    for inst_code in get_inst_list():
+        t = Thread(
+            target=crawl_inst_info,
+            args=(inst_code,)
+        )
+        threads.append(t)
+        t.start()
+        t.join()
+
+    progress = progressbar.ProgressBar()
+    for t in progress(threads):
+        pass
 
     print 'Total department information: %d' % Department.objects.count()
 
