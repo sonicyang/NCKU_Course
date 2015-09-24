@@ -38,6 +38,7 @@ class Course_Struct(object):
         self.syllabus = None
         self.etitle = None
         self.optional = None
+        self.ge= None
 
     def __str__(self):
         return str((self.dept, self.no, self.serial, self.time))
@@ -110,6 +111,12 @@ def collect_course_info(tr):
     course.no = trim_element(tds[2])
     course.serial = trim_element(tds[3])
     course.clas = trim_element(tds[5])
+    course.ge = trim_element(tds[7])
+    if '科際整合'.decode('utf8') in course.ge:
+        memo = trim_element(tds[18])
+        index_to_trim = memo.find('相關領域：'.decode('utf8'))
+        course.ge = memo[index_to_trim + len('相關領域：'.decode('utf8')):]
+
     course.ctitle = trim_element(tds[10])
     course.time = trim_element(tds[16])
     course.note = trim_element(tds[18])
@@ -134,12 +141,13 @@ def collect_course_info(tr):
 def archive_courses(courses):
     for course_it in courses:
         try:
+
             course, create = Course.objects.get_or_create(no=course_it.dept + '-' + course_it.no)
 
             course.dept = course_it.dept
             course.code = course_it.dept
             course.serial = course_it.serial
-            course.clas = course_it.serial
+            course.clas = course_it.clas
 
             course.credit = course_it.credit
             course.time = parse_to_nthu(course_it.time)
@@ -148,7 +156,7 @@ def archive_courses(courses):
             course.note = course_it.note
             course.objective = course_it.objective
             course.prerequisite = course_it.prerequisite
-            # course.ge = course_it.ge
+            course.ge = course_it.ge
             course.chi_title = course_it.ctitle
 
 
@@ -215,14 +223,14 @@ def crawl_course():
     for t in progress(threads):
         t.join()
 
-    print 'Crawling syllabus...'
-    pool = threadpool.ThreadPool(50)
-    reqs = threadpool.makeRequests(
-        crawl_syllabus,
-        [([course], {}) for course in Course.objects.all()]
-    )
-    [pool.putRequest(req) for req in reqs]
-    pool.wait()
+    # print 'Crawling syllabus...'
+    # pool = threadpool.ThreadPool(50)
+    # reqs = threadpool.makeRequests(
+        # crawl_syllabus,
+        # [([course], {}) for course in Course.objects.all()]
+    # )
+    # [pool.putRequest(req) for req in reqs]
+    # pool.wait()
 
     print 'Total course information: %d' % Course.objects.count()
 

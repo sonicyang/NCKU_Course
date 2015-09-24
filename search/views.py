@@ -9,9 +9,12 @@ from data_center.const import DEPT_CHOICE, GEC_CHOICE, GE_CHOICE, T_YEAR, C_TERM
 from django.views.decorators.cache import cache_page
 from django import forms
 
+import requests
+import bs4
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery
 
+SYM_URL = 'http://class-qry.acad.ncku.edu.tw/syllabus/online_display.php'
 
 def group_words(s):
     """Split Chinese token for better search result"""
@@ -68,8 +71,9 @@ def search(request):
             return HttpResponse('TMD')  # Too many detail
 
         courses = Course.objects.filter(pk__in=[c.pk for c in courses])
-        if code in ['GE', 'GEC']:
-            core = request.GET.get(code.lower(), '')
+        if code in ['A9']:
+            core = request.GET.get('ge', '')
+            print core
             if core:
                 courses = courses.filter(ge__contains=core)
 
@@ -101,6 +105,22 @@ def search(request):
 @cache_page(60 * 60)
 def syllabus(request, id):
     course = get_object_or_404(Course, id=id)
+    if course is not None:
+        clas_map = {'甲':'1', '乙':'2', '丙':'3'}
+        if course.clas is not None and len(course.clas) > 0:
+            clas = clas_map[course.clas.encode('utf8')]
+        else:
+            clas = ''
+        url = SYM_URL + "?syear=0%s&sem=%s&co_no=%s&class_code=%s" % (T_YEAR, C_TERM, course.serial, clas)
+
+        html = requests.get(url).content.decode('big5', 'ignore').encode('utf8', 'ignore').replace('<br>', '<br/>')
+        print url
+
+        soup = bs4.BeautifulSoup(html, 'html.parser')
+        course_outline = soup.find('div', { 'id': 'container' })
+        [x.extract() for x in course_outline.find_all('div', { 'id': 'header' })]
+        course.syllabus = str(course_outline.contents[2])
+
     return render(request, 'syllabus.html',
                   {'course': course, 'syllabus_path': request.path})
 
