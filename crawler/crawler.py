@@ -67,7 +67,7 @@ def crawl_syllabus(course):
         course.eng_title = soup.find('div', { 'id': 'header' }).find_all('span')[1].find_all('br')[1].get_text()
         if course.eng_title is None:
             course.eng_title = ""
-            coutf8urse_outlin = soup.find('div', { 'id': 'containect() for x in course_outline.find_all('div', { 'id': 'header'  })]r' })
+            course_outline = soup.find('div', { 'id': 'container' })
         [x.extract() for x in course_outline.find_all('div', { 'id': 'header' })]
         course.syllabus = str(course_outline.contents[2])
     except:
