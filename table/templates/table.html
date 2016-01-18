@@ -87,6 +87,10 @@ window.fbAsyncInit = function() {
       本系統並無與校務資訊系統接合，正式選課時請別忘記到校務資訊系統選課喔！<br>
       此外，因為課程資料課務組可能更動，我們每天至少更新一次，最終結果以課務組為準。
     </alert>
+    <alert ng-show="alerts>0" close="closeAlert()">
+      本系統星期使用代號，M為星期一，T為星期二，W為星期三，R為星期四，F為星期五
+      可以直接用M12代表禮拜一第一二節做搜尋
+    </alert>
     <form method="get" id="search-filter" class="form-horizontal">
       {{ search_filter.q|bootstrap_horizontal:"col-lg-1" }}
       {{ search_filter.code|bootstrap_horizontal:"col-lg-1" }}
