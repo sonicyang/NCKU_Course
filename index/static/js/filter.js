@@ -16,9 +16,9 @@ $(function() {
     $('#ge-option').hide();
     $('#gec-option').hide();
     $('#dept-required-option').hide();
-    if (code == 'GE' || code == 'GEC') {
-      id = '#' + code.toLowerCase() + '-option';
-      $(id).show();
+    if (code == 'A9' || code == 'GEC') {
+      id = '#ge-option';
+      $('#ge-option').show();
     } else if ($('#id_dept_required  option[value^="' + code_4 + '"]').length) {
       $('#dept-required-option').show();
       $('#id_dept_required  option').hide();
