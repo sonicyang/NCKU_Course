@@ -142,6 +142,9 @@ def archive_courses(courses):
     for course_it in courses:
         try:
 
+            if course_it.dept == 'N1' and course_it.no == '045':
+		course_it.time = course_it.time[:-2]
+
             course, create = Course.objects.get_or_create(no=course_it.dept + '-' + course_it.no)
 
             course.dept = course_it.dept
