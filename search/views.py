@@ -73,9 +73,8 @@ def search(request):
         courses = Course.objects.filter(pk__in=[c.pk for c in courses])
         if code in ['A9']:
             core = request.GET.get('ge', '')
-            print core
-            if core:
-                courses = courses.filter(ge__contains=core)
+            if core.encode('utf8'):
+                courses = courses.filter(ge__contains=core.encode('utf8'))
 
     courses = courses.order_by(rev_sortby)
     paginator = Paginator(courses, page_size)
